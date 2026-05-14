@@ -1,6 +1,12 @@
 import hashlib
 from datetime import date
 
+# Known bank description aliases — all map to their canonical name so that
+# re-labelled transactions produce the same deterministic ID.
+_DESCRIPTION_ALIASES: dict[str, str] = {
+    "SUNDRY CREDIT": "STAFF - PAYROLL",
+}
+
 
 def generate_transaction_id(
     account_number: str,
@@ -24,6 +30,7 @@ def generate_transaction_id(
     date_str = transaction_date.isoformat()
     amount_str = f"{float(amount_cad):.2f}"
     desc = description_1.strip().upper()
+    desc = _DESCRIPTION_ALIASES.get(desc, desc)
 
     raw = f"{account_last4}|{date_str}|{amount_str}|{desc}"
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
